@@ -1,8 +1,36 @@
 # Obsidian Page to Browser
 
-Renders a single markdown file from your Obsidian vault live in the browser, with styling and working links. No build step: edit the note in Obsidian, reload the browser tab, and the change is there.
+[![License: MIT](https://img.shields.io/github/license/theopnv/obsidian-page-to-browser)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/theopnv/obsidian-page-to-browser)](https://github.com/theopnv/obsidian-page-to-browser/stargazers)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+![No build step](https://img.shields.io/badge/build-none-lightgrey)
+
+Turn any note in your Obsidian vault into a live webpage. Bookmark it in your browser toolbar, click it, and get a clean, styled page instead of raw `[text](url)` syntax. Edit the note in Obsidian, reload the tab, and the change is already there. No build step, no static site generator, no regenerate command.
 
 It talks to the [Local REST API (with MCP)](https://github.com/coddingtonbear/obsidian-local-rest-api) plugin, which runs inside Obsidian and serves your vault over HTTPS on your own machine.
+
+## Why
+
+Notion, a static site generator, or this. Here's how they compare:
+
+| | Notion | Static site generator | This |
+| --- | --- | --- | --- |
+| Updates live, no rebuild | ✅ | ❌ | ✅ |
+| Plain markdown files, no lock-in | ❌ Proprietary format | ✅ | ✅ |
+| Notes stay off someone else's server | ❌ Stored on Notion's servers, not encrypted end-to-end | ❌ Published output is public once built | ✅ Fetched live from your machine, only the empty viewer is public |
+
+Edit a note in Obsidian, reload the bookmarked tab, see the change. Nothing to regenerate, ever.
+
+The same trick works for any note worth one click away as a webpage:
+
+- **A bookmarks or reading list page.** The original use case: a curated list of links, styled, always current.
+- **A map-of-content note.** An index note that fans out through `[[wikilinks]]`, browsable like a small personal wiki, without opening Obsidian.
+- **A running dashboard.** A project status or task note you check often, one bookmark away instead of buried in a vault.
+- **A cheatsheet.** Commands, shortcuts, snippets you copy from mid-terminal, rendered as a real page instead of a wall of markdown syntax.
+
+## Screenshot
+
+![Screenshot of the rendered viewer next to the raw markdown file](docs/screenshot.png)
 
 ## What it does
 
@@ -13,7 +41,7 @@ It talks to the [Local REST API (with MCP)](https://github.com/coddingtonbear/ob
 ## What it doesn't do (yet)
 
 - Callouts, `![[embeds]]`, `#tags`, and frontmatter don't render.
-- No favicons or Notion-style card styling. Plain theme only.
+- No per-link favicons or Notion-style card styling. Plain theme only.
 - Desktop only. The Local REST API only listens on `127.0.0.1`, so this won't work from your phone.
 - One vault, one browser profile. No account switching.
 
@@ -86,3 +114,17 @@ Inside a rendered note:
 - A wikilink to a note that doesn't exist renders as plain, muted, unclickable text.
 
 To bookmark a different note, open it once with its own `?file=` URL and bookmark that.
+
+## Contributing
+
+Pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+MIT. See [LICENSE](LICENSE).
+
+## Support
+
+If this saved you the trouble of building your own Notion-to-Obsidian bookmarks setup:
+
+<a href="https://buymeacoffee.com/theopnv" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="41" width="174"></a>
