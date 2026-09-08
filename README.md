@@ -114,17 +114,3 @@ Inside a rendered note:
 - A wikilink to a note that doesn't exist renders as plain, muted, unclickable text.
 
 To bookmark a different note, open it once with its own `?file=` URL and bookmark that.
-
-## Contributing
-
-Pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## License
-
-MIT. See [LICENSE](LICENSE).
-
-## Support
-
-If this saved you the trouble of building your own Notion-to-Obsidian bookmarks setup:
-
-<a href="https://buymeacoffee.com/theopnv" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="41" width="174"></a>

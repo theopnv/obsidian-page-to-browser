@@ -4,20 +4,24 @@ import { fetchFile, search } from "./api.js";
 // viewed in this tab.
 const resolutionCache = new Map();
 
+// Firing every wikilink's resolution requests at once can overwhelm the
+// Local REST API: at higher concurrency, requests started failing outright
+// with NetworkError in testing, not just responding slowly. Capping how
+// many resolve at once trades a bit of parallelism for not breaking links.
+const RESOLUTION_CONCURRENCY = 3;
+
 export async function resolveWikilinks(container) {
   const anchors = Array.from(container.querySelectorAll("a[data-wikilink]"));
   if (anchors.length === 0) return;
 
   const targets = [...new Set(anchors.map((a) => a.dataset.wikilink))];
+  const pending = targets.filter((target) => !resolutionCache.has(target));
 
-  await Promise.all(
-    targets.map((target) => {
-      if (!resolutionCache.has(target)) {
-        resolutionCache.set(target, resolveTarget(target));
-      }
-      return resolutionCache.get(target);
-    })
-  );
+  await runWithConcurrency(pending, RESOLUTION_CONCURRENCY, (target) => {
+    const promise = resolveTarget(target);
+    resolutionCache.set(target, promise);
+    return promise;
+  });
 
   for (const anchor of anchors) {
     const path = await resolutionCache.get(anchor.dataset.wikilink);
@@ -30,23 +34,48 @@ export async function resolveWikilinks(container) {
   }
 }
 
-// Mirrors Obsidian's own resolution order: try the target as an exact vault
-// path first (a wikilink is often already folder-qualified), then fall back to a vault-wide filename
-// search on the basename. Full-text search alone is unreliable here: a note
-// that merely contains the literal text "[[Target]]" outscores the actual
-// target note, so only matches against the filename itself are trusted.
+async function runWithConcurrency(items, limit, fn) {
+  let index = 0;
+  async function worker() {
+    while (index < items.length) {
+      const item = items[index++];
+      await fn(item);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+}
+
+// A request that fails outright (NetworkError) under concurrent load is
+// worth one retry rather than immediately giving up and marking a real link
+// as unresolved.
+async function withRetry(fn) {
+  try {
+    return await fn();
+  } catch (error) {
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    return fn();
+  }
+}
+
+// Mirrors Obsidian's own resolution order: an exact vault path first, then a
+// vault-wide filename search on the basename. Full-text search alone is
+// unreliable here: a note that merely contains the literal text
+// "[[Target]]" outscores the actual target note, so only matches against
+// the filename itself are trusted.
 async function resolveTarget(target) {
+  if (!target.includes("/")) {
+    return resolveViaSearch(target);
+  }
+
   const direct = await tryDirectPath(target);
   if (direct) return direct;
-
-  const basename = target.includes("/") ? target.slice(target.lastIndexOf("/") + 1) : target;
-  return resolveViaSearch(basename);
+  return resolveViaSearch(target.slice(target.lastIndexOf("/") + 1));
 }
 
 async function tryDirectPath(target) {
   const path = target.toLowerCase().endsWith(".md") ? target : `${target}.md`;
   try {
-    await fetchFile(path);
+    await withRetry(() => fetchFile(path));
     return path;
   } catch {
     return null;
@@ -55,7 +84,7 @@ async function tryDirectPath(target) {
 
 async function resolveViaSearch(name) {
   try {
-    const results = await search(name);
+    const results = await withRetry(() => search(name));
     if (!Array.isArray(results) || results.length === 0) return null;
 
     const filenameMatches = results.filter((r) =>
