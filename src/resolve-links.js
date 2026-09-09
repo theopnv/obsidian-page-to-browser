@@ -92,10 +92,21 @@ async function resolveViaSearch(name) {
     );
     if (filenameMatches.length === 0) return null;
 
+    // A fuzzy score alone isn't enough to pick the right file: a name that
+    // merely contains "name" as a substring (e.g. "Not Foo" for
+    // "Foo") can outscore the note whose basename matches exactly.
+    const exact = filenameMatches.find((r) => basename(r.filename) === name.toLowerCase());
+    if (exact) return exact.filename;
+
     const best = filenameMatches.reduce((a, b) => (b.score > a.score ? b : a));
     return best.filename || null;
   } catch (error) {
     console.error(`Wikilink resolution failed for "${name}":`, error);
     return null;
   }
+}
+
+function basename(path) {
+  const file = path.slice(path.lastIndexOf("/") + 1).toLowerCase();
+  return file.endsWith(".md") ? file.slice(0, -3) : file;
 }
