@@ -29,6 +29,14 @@ body {
   margin: 0 auto;
 }
 
+.page-title {
+  font-size: 1.9em;
+  line-height: 1.3;
+  margin: 0 0 1em;
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid var(--border-color);
+}
+
 .note h1,
 .note h2,
 .note h3,

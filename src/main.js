@@ -15,6 +15,11 @@ function escapeHtml(value) {
   return div.innerHTML;
 }
 
+function titleFromPath(path) {
+  const file = path.slice(path.lastIndexOf("/") + 1);
+  return file.toLowerCase().endsWith(".md") ? file.slice(0, -3) : file;
+}
+
 async function ensureConfig(message) {
   if (getConfig() && !message) return;
   await renderSettingsForm(app, { message });
@@ -31,7 +36,9 @@ async function loadAndRender(path) {
   try {
     const source = await fetchFile(path);
     const html = renderMarkdown(source);
-    app.innerHTML = `<article class="note">${html}</article>`;
+    const title = titleFromPath(path);
+    document.title = `${title} — Obsidian Note Viewer`;
+    app.innerHTML = `<h1 class="page-title">${escapeHtml(title)}</h1><article class="note">${html}</article>`;
     await resolveWikilinks(app.querySelector(".note"));
   } catch (error) {
     if (error instanceof AuthError) {
